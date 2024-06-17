@@ -1,6 +1,5 @@
 import {
   FlatList,
-  Image,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -10,7 +9,6 @@ import {
 import React, {useEffect, useState} from 'react';
 import CSafeAreaView from '../Common/CSafeAreaView';
 import {moderateScale} from '../Common/Constant';
-import images from '../assets/images';
 import {firebase} from '@react-native-firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CButton from '../Common/CButton';
@@ -24,27 +22,47 @@ export default function Home({navigation}) {
   }, []);
 
   const getUsers = async () => {
-    const email = await AsyncStorage.getItem('EMAIL');
-    id = await AsyncStorage.getItem('USERID');
+    try {
+      const email = await AsyncStorage.getItem('EMAIL');
+      console.log('email', email);
+      id = await AsyncStorage.getItem('USERID');
 
-    let usersData = [];
-    firebase
-      .firestore()
-      .collection('Users')
-      .where('email', '!=', email)
-      .get()
-      .then(result => {
-        if (result.docs != []) {
-          result.docs.map(item => {
-            usersData.push(item.data());
+      if (email) {
+        let usersData = [];
+        firebase
+          .firestore()
+          .collection('Users')
+          .where('email', '!=', email)
+          .get()
+          .then(result => {
+            if (result.docs.length > 0) {
+              result.docs.forEach(item => {
+                usersData.push(item.data());
+              });
+            }
+            setUsers(usersData);
+          })
+          .catch(error => {
+            console.error('Error getting users:', error);
           });
-        }
-        setUsers(usersData);
-      });
+      } else {
+        console.log('No email found in AsyncStorage');
+      }
+    } catch (error) {
+      console.error('Error retrieving email:', error);
+    }
   };
 
   const onPressUser = item => {
     navigation.navigate('Chat', {data: item, id: id});
+  };
+
+  const onPressLogout = async () => {
+    await AsyncStorage.clear();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Login'}],
+    });
   };
 
   const RenderUsers = ({item}) => {
@@ -66,7 +84,7 @@ export default function Home({navigation}) {
         keyExtractor={item => item.userId}
       />
 
-      <CButton title={'Settings'} />
+      <CButton title={'Log out'} onPress={onPressLogout} />
     </CSafeAreaView>
   );
 }

@@ -25,6 +25,7 @@ export default function Splash({navigation}) {
       });
     }
   };
+
   return (
     <CSafeAreaView extraStyle={{backgroundColor: 'transparent'}}>
       <View style={styles.main}>

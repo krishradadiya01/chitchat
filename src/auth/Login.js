@@ -26,6 +26,7 @@ export default function Login({navigation}) {
 
   const loginUser = () => {
     setIsLoading(true);
+    console.log('email------->', email);
     firestore()
       .collection('Users')
       .where('email', '==', email)
@@ -33,19 +34,31 @@ export default function Login({navigation}) {
       .then(result => {
         setIsLoading(false);
         if (result.docs.length > 0) {
-          gotoNext(result.docs.map(item => item.data().item));
+          const user = result.docs[0].data();
+          gotoNext(user.name, user.email, user.userId);
         } else {
           setIsLoading(false);
           Alert.alert('No user found!');
         }
+      })
+      .catch(error => {
+        setIsLoading(false);
+        Alert.alert('Error logging in!', error.message);
       });
   };
 
   const gotoNext = async (name, email, userId) => {
-    await AsyncStorage.setItem('NAME', String(name));
-    await AsyncStorage.setItem('EMAIL', String(email));
-    await AsyncStorage.setItem('USERID', String(userId));
-    navigation.navigate('Home');
+    try {
+      await AsyncStorage.setItem('NAME', String(name));
+      await AsyncStorage.setItem('EMAIL', String(email));
+      await AsyncStorage.setItem('USERID', String(userId));
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'Chat'}],
+      });
+    } catch (error) {
+      Alert.alert('Error saving user data!', error.message);
+    }
   };
 
   return (

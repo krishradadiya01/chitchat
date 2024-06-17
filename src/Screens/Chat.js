@@ -36,16 +36,10 @@ export default function Chat({route}) {
       createdAt: Date.parse(msg.createdAt),
     };
     setMessages(previousMessages => GiftedChat.append(previousMessages, myMsg));
-    firebase
-      .firestore()
-      .collection('Users')
-      .doc('' + id + data.userId)
-      .collection('Messages')
-      .add(myMsg);
 
     firebase
       .firestore()
-      .collection('Users')
+      .collection('Chats')
       .doc('' + data.userId + id)
       .collection('Messages')
       .add(myMsg);
